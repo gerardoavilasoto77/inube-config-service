@@ -1,0 +1,36 @@
+spring:
+  application:
+    name: inube-config-service
+  security:
+    user:
+      name: configadmin
+      password: config123
+  cloud:
+    config:
+      server:
+        git:
+          uri: https://github.com/gerardoavilasoto77/inube-config-service
+          default-label: main
+          clone-on-start: true
+          force-pull: true
+
+server:
+  port: 8105
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,env
+  endpoint:
+    health:
+      show-details: always
+
+info:
+  app:
+    name: Inube Config Service
+    version: 1.0.0
+
+logging:
+  level:
+    org.springframework.cloud.config: INFO
