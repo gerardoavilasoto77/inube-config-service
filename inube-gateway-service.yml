@@ -1,0 +1,83 @@
+# inube-gateway-service.yml
+spring:
+  data:
+    redis:
+      host: localhost
+      port: 6379
+
+  cloud:
+    gateway:
+      discovery:
+        locator:
+          enabled: false
+          lower-case-service-id: true
+
+      routes:
+        - id: inube-auth-auth
+          uri: lb://INUBE-AUTHENTICATION-SERVICE
+          predicates:
+            - Path=/api/inube/auth/**
+          filters:
+            - name: RequestRateLimiter
+              args:
+                key-resolver: "#{@userKeyResolver}"
+                redis-rate-limiter.replenishRate: 5
+                redis-rate-limiter.burstCapacity: 10
+
+        - id: inube-auth-user
+          uri: lb://INUBE-AUTHENTICATION-SERVICE
+          predicates:
+            - Path=/api/inube/user/**
+          filters:
+            - AuthenticationFilter
+
+        - id: inube-service
+          uri: lb://INUBE-SERVICE
+          predicates:
+            - Path=/api/inube/service/**
+          filters:
+            - AuthenticationFilter
+
+        - id: books-service
+          uri: lb://BOOKS-SERVICE
+          predicates:
+            - Path=/api/inube/books/**
+          filters:
+            - AuthenticationFilter
+            - name: RequestRateLimiter
+              args:
+                key-resolver: "#{@userKeyResolver}"
+                redis-rate-limiter.replenishRate: 10
+                redis-rate-limiter.burstCapacity: 20
+            - name: CircuitBreaker
+              args:
+                name: BooksCircuitBreaker
+                fallbackUri: forward:/fallback/books
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://eureka:eureka123@localhost:8100/eureka/
+    register-with-eureka: true
+    fetch-registry: true
+    healthcheck:
+      enabled: true
+  instance:
+    lease-renewal-interval-in-seconds: 5
+    lease-expiration-duration-in-seconds: 15
+    prefer-ip-address: true
+
+server:
+  port: 8107
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,gateway,prometheus
+  endpoint:
+    health:
+      show-details: always
+  metrics:
+    tags:
+      application: inube-gateway-service
