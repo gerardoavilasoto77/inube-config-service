@@ -81,3 +81,37 @@ management:
   metrics:
     tags:
       application: inube-gateway-service
+      prometheus:
+    metrics:
+      export:
+        enabled: true
+
+jwt:
+  secret: d3JpdGUtY29kZS1ldmVyeS1kYXktY2xlYW4tY29kZS1pcy1iZXR0ZXItdGhhbi1ub3RoaW5n
+
+info:
+  app:
+    name: Inube Gateway Service
+    version: 1.0.0
+
+logging:
+  level:
+    org.springframework.cloud.gateway: INFO
+    com.inube.inube_gateway_service: DEBUG
+
+resilience4j:
+  circuitbreaker:
+    instances:
+      authCircuitBreaker:
+        slidingWindowSize: 10
+        minimumNumberOfCalls: 5
+        failureRateThreshold: 50
+        waitDurationInOpenState: 30s
+        permittedNumberOfCallsInHalfOpenState: 3
+
+      authUserCircuitBreaker:
+        slidingWindowSize: 10
+        minimumNumberOfCalls: 5
+        failureRateThreshold: 50
+        waitDurationInOpenState: 30s
+        permittedNumberOfCallsInHalfOpenState: 3
